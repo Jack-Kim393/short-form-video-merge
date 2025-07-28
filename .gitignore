@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environment
+.venv/
+virtualenv/
+env/
+.env/
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS generated files
+.DS_Store
+.Trashes
+Thumbs.db
+
+# PyInstaller
+build/
+dist/
+*.spec
+
+# Streamlit
+.streamlit/
+
+# Output directories and large media files
+output/
+thumbnail/
+*.mp4
+*.jpg
+*.jpeg
+*.png
