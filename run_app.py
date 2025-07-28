@@ -27,4 +27,5 @@ if __name__ == "__main__":
     ]
     
     # Run streamlit
+    os.environ["STREAMLIT_SERVER_MAX_UPLOAD_SIZE"] = "5120"
     sys.exit(stcli.main())

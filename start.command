@@ -4,4 +4,4 @@
 cd "$(dirname "$0")"/dist
 
 # Execute the PyInstaller-generated application
-./app
+./app/app

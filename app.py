@@ -84,7 +84,7 @@ st.title("🎬 간편 숏폼 영상 제작 솔루션")
 st.markdown("---")
 
 st.header("1. 영상 파일 업로드")
-st.info(f"MP4 형식의 영상 파일을 1개에서 최대 {MAX_FILES}개까지 드래그앤 드랍하세요.")
+st.info(f"MP4 형식의 영상 파일을 1개에서 최대 {MAX_FILES}개까지 드래그앤 드랍하세요. (현재 업로드 제한: {st.config.get_option('server.maxUploadSize')}MB)")
 
 if 'clip_settings' not in st.session_state:
     st.session_state.clip_settings = OrderedDict()
