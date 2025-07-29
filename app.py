@@ -104,7 +104,7 @@ if uploaded_files:
                     try:
                         with mp.VideoFileClip(tfile.name) as clip: actual_duration = clip.duration
                     except Exception: actual_duration = MAX_CLIP_DURATION
-            st.session_state.clip_settings[fid] = {'file': file, 'start': 15.0, 'duration': min(MIN_CLIP_DURATION, actual_duration), 'actual_duration': actual_duration}
+            st.session_state.clip_settings[fid] = {'file': file, 'start': 0.0, 'duration': min(MAX_CLIP_DURATION, actual_duration), 'actual_duration': actual_duration}
 
     # Remove old files
     for fid in list(st.session_state.clip_settings.keys()):
@@ -124,7 +124,7 @@ if uploaded_files:
                         sc1, sc2 = st.columns(2)
                         actual_dur = settings['actual_duration']
                         settings['start'] = sc1.number_input("시작 시간 (초)", 0.0, max(0.0, actual_dur - MIN_CLIP_DURATION), settings['start'], 0.1, "%.1f", key=f"start_{file_id}")
-                        settings['duration'] = sc2.number_input("사용할 길이 (초)", MIN_CLIP_DURATION, min(MAX_CLIP_DURATION, actual_dur), settings['duration'], 0.1, "%.1f", key=f"duration_{file_id}")
+                        settings['duration'] = sc2.number_input("사용할 길이 (초)", min(MIN_CLIP_DURATION, actual_dur), min(MAX_CLIP_DURATION, actual_dur), settings['duration'], 0.1, "%.1f", key=f"duration_{file_id}")
                 with c2:
                     if i > 0: st.button("🔼", key=f"up_{file_id}", on_click=move_item, args=(file_id, 'up'), use_container_width=True)
                     if i < len(st.session_state.clip_settings) - 1: st.button("🔽", key=f"down_{file_id}", on_click=move_item, args=(file_id, 'down'), use_container_width=True)
