@@ -104,7 +104,7 @@ if uploaded_files:
                     try:
                         with mp.VideoFileClip(tfile.name) as clip: actual_duration = clip.duration
                     except Exception: actual_duration = MAX_CLIP_DURATION
-            st.session_state.clip_settings[fid] = {'file': file, 'start': 0.0, 'duration': min(MAX_CLIP_DURATION, actual_duration), 'actual_duration': actual_duration}
+            st.session_state.clip_settings[fid] = {'file': file, 'start': 0.0, 'duration': min(MIN_CLIP_DURATION, actual_duration), 'actual_duration': actual_duration}
 
     # Remove old files
     for fid in list(st.session_state.clip_settings.keys()):
