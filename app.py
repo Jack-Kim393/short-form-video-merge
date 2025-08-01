@@ -118,7 +118,7 @@ if uploaded_files:
                 'duration': min(MIN_CLIP_DURATION, actual_duration), 
                 'actual_duration': actual_duration,
                 'text_content': "",
-                'font_choice': font_list[0] if font_list else None,
+                'font_choice': 'NanumGothicExtraBold.ttf' if 'NanumGothicExtraBold.ttf' in font_list else (font_list[0] if font_list else None),
                 'font_size': 50,
                 'font_color': '#FFFFFF'
             }
@@ -205,7 +205,7 @@ if uploaded_files:
                     if not resized_clip: st.error(f"'{clip_info['file'].name}' 처리 실패."); st.stop()
                     processed_clips.append(resized_clip)
 
-                safety_margin = 0.85
+                safety_margin = 0.80
                 total_duration = sum(c.duration for c in processed_clips)
                 target_bitrate_kbps = ((OUTPUT_MAX_FILE_SIZE_MB * safety_margin * 1024 * 8) / total_duration)
                 video_bitrate_kbps = target_bitrate_kbps - 128
