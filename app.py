@@ -11,6 +11,7 @@ from collections import OrderedDict
 TARGET_SIZE = (1080, 1920)
 THUMBNAIL_DIR = "thumbnail"
 OUTPUT_DIR = "output"
+FONT_DIR = "font"
 MAX_FILES = 10
 OUTPUT_MAX_FILE_SIZE_MB = 32
 MIN_CLIP_DURATION = 5.0
@@ -78,6 +79,12 @@ def create_thumbnail(video_clip, output_path):
 def get_file_id(file):
     return f"{file.name}-{file.size}-{file.file_id}"
 
+def get_font_list():
+    """Lists available .ttf fonts in the FONT_DIR."""
+    if not os.path.exists(FONT_DIR):
+        return []
+    return [f for f in os.listdir(FONT_DIR) if f.lower().endswith('.ttf')]
+
 # --- STREAMLIT UI ---
 st.set_page_config(layout="wide")
 st.title("🎬 간편 숏폼 영상 제작 솔루션")
@@ -91,6 +98,7 @@ if 'clip_settings' not in st.session_state:
 
 uploaded_files = st.file_uploader("파일 업로드", type=["mp4"], accept_multiple_files=True, label_visibility="collapsed")
 
+font_list = get_font_list()
 if uploaded_files:
     if len(uploaded_files) > MAX_FILES: st.error(f"영상은 최대 {MAX_FILES}개까지 업로드할 수 있습니다."); uploaded_files = []
     
@@ -104,7 +112,16 @@ if uploaded_files:
                     try:
                         with mp.VideoFileClip(tfile.name) as clip: actual_duration = clip.duration
                     except Exception: actual_duration = MAX_CLIP_DURATION
-            st.session_state.clip_settings[fid] = {'file': file, 'start': 0.0, 'duration': min(MIN_CLIP_DURATION, actual_duration), 'actual_duration': actual_duration}
+            st.session_state.clip_settings[fid] = {
+                'file': file, 
+                'start': 0.0, 
+                'duration': min(MIN_CLIP_DURATION, actual_duration), 
+                'actual_duration': actual_duration,
+                'text_content': "",
+                'font_choice': font_list[0] if font_list else None,
+                'font_size': 50,
+                'font_color': '#FFFFFF'
+            }
 
     # Remove old files
     for fid in list(st.session_state.clip_settings.keys()):
@@ -125,6 +142,18 @@ if uploaded_files:
                         actual_dur = settings['actual_duration']
                         settings['start'] = sc1.number_input("시작 시간 (초)", 0.0, max(0.0, actual_dur - MIN_CLIP_DURATION), settings['start'], 0.1, "%.1f", key=f"start_{file_id}")
                         settings['duration'] = sc2.number_input("사용할 길이 (초)", min(MIN_CLIP_DURATION, actual_dur), min(MAX_CLIP_DURATION, actual_dur), settings['duration'], 0.1, "%.1f", key=f"duration_{file_id}")
+
+                        # --- Text Overlay UI ---
+                        st.markdown("###### 📝 텍스트 추가 (선택)")
+                        settings['text_content'] = st.text_area("내용 (2줄까지 가능)", settings.get('text_content', ''), key=f"text_{file_id}", height=100)
+                        
+                        tc1, tc2, tc3 = st.columns(3)
+                        if font_list:
+                            settings['font_choice'] = tc1.selectbox("폰트", font_list, index=font_list.index(settings.get('font_choice')) if settings.get('font_choice') in font_list else 0, key=f"font_{file_id}")
+                        else:
+                            tc1.warning("사용 가능한 폰트가 없습니다.")
+                        settings['font_size'] = tc2.slider("크기", 30, 200, settings.get('font_size', 50), key=f"size_{file_id}")
+                        settings['font_color'] = tc3.color_picker("색상", settings.get('font_color', '#FFFFFF'), key=f"color_{file_id}")
                 with c2:
                     if i > 0: st.button("🔼", key=f"up_{file_id}", on_click=move_item, args=(file_id, 'up'), use_container_width=True)
                     if i < len(st.session_state.clip_settings) - 1: st.button("🔽", key=f"down_{file_id}", on_click=move_item, args=(file_id, 'down'), use_container_width=True)
@@ -155,6 +184,24 @@ if uploaded_files:
 
                     subclip = clip.subclip(clip_info['start'], clip_info['start'] + clip_info['duration'])
                     resized_clip = resize_and_pad_clip(subclip, TARGET_SIZE)
+
+                    # --- Add Text Overlay ---
+                    if clip_info.get('text_content') and clip_info.get('font_choice'):
+                        font_path = os.path.join(FONT_DIR, clip_info['font_choice'])
+                        if os.path.exists(font_path):
+                            text_clip = mp.TextClip(
+                                clip_info['text_content'],
+                                fontsize=clip_info['font_size'],
+                                color=clip_info['font_color'],
+                                font=font_path,
+                                size=(TARGET_SIZE[0] - 100, None), # Add horizontal padding
+                                method='caption', # Enable word wrapping
+                                align='center'
+                            ).set_position(('center', 200)).set_duration(resized_clip.duration)
+                            resized_clip = mp.CompositeVideoClip([resized_clip, text_clip])
+                        else:
+                            st.warning(f"폰트 파일을 찾을 수 없습니다: {font_path}")
+
                     if not resized_clip: st.error(f"'{clip_info['file'].name}' 처리 실패."); st.stop()
                     processed_clips.append(resized_clip)
 
